@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Task Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Main container for the app -->
+    <div class="container">
+        <!-- Title of the app -->
+        <h1>My Task Manager</h1>
+        
+        <!-- Input area for adding new tasks -->
+        <div class="input-section">
+            <!-- Text input field where user types the task -->
+            <input 
+                type="text" 
+                id="taskInput" 
+                placeholder="Enter a new task..."
+                class="task-input"
+            >
+            <!-- Button to add the task -->
+            <button id="addBtn" class="add-btn">Add Task</button>
+        </div>
+        
+        <!-- List where all tasks will appear -->
+        <ul id="taskList" class="task-list">
+            <!-- Tasks will be added here by JavaScript -->
+        </ul>
+    </div>
+
+    <!-- Link to our JavaScript file -->
+    <script src="script.js"></script>
+</body>
+</html>

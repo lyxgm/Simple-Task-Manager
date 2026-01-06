@@ -1,0 +1,129 @@
+/* Reset default styles and set up the page */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Style the entire page */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* Container holds all the content */
+.container {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+}
+
+/* Style the title */
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 30px;
+  font-size: 28px;
+}
+
+/* Container for the input and button */
+.input-section {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+/* Style the input field */
+.task-input {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+/* Change border color when input is focused */
+.task-input:focus {
+  outline: none;
+  border-color: #4caf50;
+}
+
+/* Style the Add button */
+.add-btn {
+  padding: 12px 20px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+/* Change button color when you hover over it */
+.add-btn:hover {
+  background-color: #45a049;
+}
+
+/* Style the task list */
+.task-list {
+  list-style: none;
+}
+
+/* Style each task item */
+.task-item {
+  background-color: #f9f9f9;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-left: 4px solid #4caf50;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.2s;
+}
+
+/* Change task background when you hover over it */
+.task-item:hover {
+  background-color: #f0f0f0;
+}
+
+/* Style the task text */
+.task-text {
+  color: #333;
+  font-size: 16px;
+  flex: 1;
+}
+
+/* Style the delete button */
+.delete-btn {
+  padding: 8px 12px;
+  background-color: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+/* Change delete button color when you hover over it */
+.delete-btn:hover {
+  background-color: #ff5252;
+}
+
+/* Empty state message when there are no tasks */
+.empty-message {
+  text-align: center;
+  color: #999;
+  padding: 20px;
+  font-style: italic;
+}
