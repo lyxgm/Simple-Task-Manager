@@ -1,29 +1,35 @@
 // ============================================
-// TASK MANAGER APP - ADVANCED VERSION
+// NOTION-STYLE TASK MANAGER - ADVANCED
 // ============================================
 
-// DATA STORAGE
+// DATA STRUCTURE
 let tasks = JSON.parse(localStorage.getItem("tasks")) || []
-let currentFilter = "all"
 let currentView = "list"
+let currentFilter = "all"
+let editingTaskId = null
 const currentDate = new Date()
 
 // DOM ELEMENTS
 const taskInput = document.getElementById("taskInput")
 const tagSelect = document.getElementById("tagSelect")
-const colorSelect = document.getElementById("colorSelect")
+const prioritySelect = document.getElementById("prioritySelect")
 const dateInput = document.getElementById("dateInput")
 const addBtn = document.getElementById("addBtn")
 const taskList = document.getElementById("taskList")
 const viewTitle = document.getElementById("viewTitle")
+const viewSubtitle = document.getElementById("viewSubtitle")
 const sidebar = document.querySelector(".sidebar")
 const menuToggle = document.getElementById("menuToggle")
+const globalSearch = document.getElementById("globalSearch")
+const taskModal = document.getElementById("taskModal")
+const modalClose = document.getElementById("modalClose")
+const modalCancel = document.getElementById("modalCancel")
+const modalSave = document.getElementById("modalSave")
 
 // ============================================
 // INITIALIZATION
 // ============================================
 
-// Initialize the app when page loads
 document.addEventListener("DOMContentLoaded", () => {
   console.log("[v0] App initializing...")
   setupEventListeners()
@@ -31,7 +37,6 @@ document.addEventListener("DOMContentLoaded", () => {
   setDefaultDate()
 })
 
-// Set today's date as default in date input
 function setDefaultDate() {
   const today = new Date().toISOString().split("T")[0]
   dateInput.value = today
@@ -42,44 +47,58 @@ function setDefaultDate() {
 // ============================================
 
 function setupEventListeners() {
-  // Add task button and Enter key
+  // Add task
   addBtn.addEventListener("click", addTask)
   taskInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") addTask()
   })
 
-  // Navigation menu
-  document.querySelectorAll(".nav-link").forEach((link) => {
+  // Navigation
+  document.querySelectorAll(".nav-link:not(.filter-link)").forEach((link) => {
     link.addEventListener("click", (e) => {
       e.preventDefault()
       const view = link.dataset.view
-      document.querySelectorAll(".nav-link").forEach((l) => l.classList.remove("active"))
+      document.querySelectorAll(".nav-link:not(.filter-link)").forEach((l) => l.classList.remove("active"))
       link.classList.add("active")
       renderView(view)
       if (window.innerWidth <= 768) sidebar.classList.remove("mobile-open")
     })
   })
 
-  // Mobile menu toggle
+  // Filter by tag
+  document.querySelectorAll(".filter-link").forEach((link) => {
+    link.addEventListener("click", (e) => {
+      e.preventDefault()
+      currentFilter = link.dataset.filter
+      renderView("list")
+    })
+  })
+
+  // Mobile menu
   menuToggle.addEventListener("click", () => {
     sidebar.classList.toggle("mobile-open")
   })
 
-  // Filter buttons (list view)
-  document.querySelectorAll(".filter-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"))
-      btn.classList.add("active")
-      currentFilter = btn.dataset.filter
-      renderTaskList()
-    })
+  // Search
+  globalSearch.addEventListener("input", (e) => {
+    const searchTerm = e.target.value.toLowerCase()
+    // Will filter in render functions
+    renderView(currentView)
   })
 
   // Settings
   document.getElementById("darkModeToggle").addEventListener("change", toggleDarkMode)
   document.getElementById("clearAllBtn").addEventListener("click", clearAllTasks)
 
-  // Calendar navigation
+  // Modal
+  modalClose.addEventListener("click", closeModal)
+  modalCancel.addEventListener("click", closeModal)
+  modalSave.addEventListener("click", saveTaskModal)
+  taskModal.addEventListener("click", (e) => {
+    if (e.target === taskModal) closeModal()
+  })
+
+  // Calendar
   document.getElementById("prevMonth").addEventListener("click", () => {
     currentDate.setMonth(currentDate.getMonth() - 1)
     renderCalendar()
@@ -91,142 +110,160 @@ function setupEventListeners() {
 }
 
 // ============================================
-// TASK MANAGEMENT FUNCTIONS
+// TASK MANAGEMENT
 // ============================================
 
-// Add a new task
 function addTask() {
   const title = taskInput.value.trim()
-  const tag = tagSelect.value || "personal"
-  const color = colorSelect.value || "blue"
+  const tag = tagSelect.value
+  const priority = prioritySelect.value
   const dueDate = dateInput.value
 
-  // Validate input
   if (!title) {
     alert("Please enter a task!")
     return
   }
 
-  // Create task object
   const task = {
     id: Date.now(),
     title,
+    description: "",
     tag,
-    color,
+    priority,
     dueDate,
+    status: "todo",
     completed: false,
     subtasks: [],
     createdAt: new Date().toISOString(),
   }
 
-  // Add to tasks array and save
   tasks.push(task)
   saveTasks()
-
-  // Clear inputs and re-render
   taskInput.value = ""
   setDefaultDate()
-  renderTaskList()
-
+  renderView(currentView)
   console.log("[v0] Task added:", task.title)
 }
 
-// Delete a task
 function deleteTask(taskId) {
-  tasks = tasks.filter((t) => t.id !== taskId)
-  saveTasks()
-  renderTaskList()
-  console.log("[v0] Task deleted")
+  if (confirm("Delete this task?")) {
+    tasks = tasks.filter((t) => t.id !== taskId)
+    saveTasks()
+    renderView(currentView)
+    console.log("[v0] Task deleted")
+  }
 }
 
-// Toggle task completion
 function toggleTask(taskId) {
   const task = tasks.find((t) => t.id === taskId)
   if (task) {
     task.completed = !task.completed
+    task.status = task.completed ? "done" : "todo"
     saveTasks()
-    renderTaskList()
-    console.log("[v0] Task toggled:", task.title, task.completed)
+    renderView(currentView)
   }
 }
 
-// Add subtask
-function addSubtask(taskId) {
+function openTaskModal(taskId) {
+  editingTaskId = taskId
   const task = tasks.find((t) => t.id === taskId)
   if (task) {
-    const subtaskTitle = prompt("Enter subtask:")
-    if (subtaskTitle) {
-      task.subtasks.push({
-        id: Date.now(),
-        title: subtaskTitle,
-        completed: false,
-      })
-      saveTasks()
-      renderTaskList()
-      console.log("[v0] Subtask added")
-    }
+    document.getElementById("modalTitle").value = task.title
+    document.getElementById("modalDescription").value = task.description || ""
+    document.getElementById("modalStatus").value = task.status || "todo"
+    document.getElementById("modalPriority").value = task.priority || "medium"
+    document.getElementById("modalTag").value = task.tag || "personal"
+    document.getElementById("modalDate").value = task.dueDate || ""
+    taskModal.classList.add("active")
   }
 }
 
-// Toggle subtask completion
-function toggleSubtask(taskId, subtaskId) {
-  const task = tasks.find((t) => t.id === taskId)
-  if (task) {
-    const subtask = task.subtasks.find((s) => s.id === subtaskId)
-    if (subtask) {
-      subtask.completed = !subtask.completed
-      saveTasks()
-      renderTaskList()
-    }
-  }
+function closeModal() {
+  taskModal.classList.remove("active")
+  editingTaskId = null
 }
 
-// Delete subtask
-function deleteSubtask(taskId, subtaskId) {
-  const task = tasks.find((t) => t.id === taskId)
+function saveTaskModal() {
+  if (!editingTaskId) return
+
+  const task = tasks.find((t) => t.id === editingTaskId)
   if (task) {
-    task.subtasks = task.subtasks.filter((s) => s.id !== subtaskId)
+    task.title = document.getElementById("modalTitle").value
+    task.description = document.getElementById("modalDescription").value
+    task.status = document.getElementById("modalStatus").value
+    task.priority = document.getElementById("modalPriority").value
+    task.tag = document.getElementById("modalTag").value
+    task.dueDate = document.getElementById("modalDate").value
     saveTasks()
-    renderTaskList()
+    renderView(currentView)
+    closeModal()
+    console.log("[v0] Task saved:", task.title)
   }
 }
 
-// Save tasks to localStorage
 function saveTasks() {
   localStorage.setItem("tasks", JSON.stringify(tasks))
-  console.log("[v0] Tasks saved to localStorage")
 }
 
 // ============================================
-// RENDERING FUNCTIONS
+// VIEW RENDERING
 // ============================================
 
-// Render the selected view
+function getFilteredTasks() {
+  const searchTerm = globalSearch.value.toLowerCase()
+  let filtered = tasks
+
+  if (currentFilter !== "all") {
+    filtered = filtered.filter((t) => t.tag === currentFilter)
+  }
+
+  if (searchTerm) {
+    filtered = filtered.filter(
+      (t) =>
+        t.title.toLowerCase().includes(searchTerm) ||
+        (t.description && t.description.toLowerCase().includes(searchTerm)),
+    )
+  }
+
+  return filtered
+}
+
 function renderView(view) {
   currentView = view
 
-  // Hide all views
   document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"))
-
-  // Show selected view
   const viewElement = document.getElementById(view + "View")
   if (viewElement) viewElement.classList.add("active")
 
-  // Update title
   const titles = {
-    list: "My Tasks",
+    list: "All Tasks",
+    database: "Database",
+    board: "Board",
     calendar: "Calendar",
-    sticky: "Sticky Wall",
-    upcoming: "Upcoming Tasks",
+    upcoming: "Upcoming",
     settings: "Settings",
   }
+
   viewTitle.textContent = titles[view]
 
-  // Render appropriate view
-  if (view === "list") renderTaskList()
-  if (view === "calendar") renderCalendar()
-  if (view === "sticky") renderStickyWall()
-  if (view === "upcoming") renderUpcoming()
+  if (view === "list") {
+    viewSubtitle.textContent = `${getFilteredTasks().length} tasks`
+    renderTaskList()
+  } else if (view === "database") {
+    viewSubtitle.textContent = "Notion-style database view"
+    renderDatabaseView()
+  } else if (view === "board") {
+    viewSubtitle.textContent = "Kanban board view"
+    renderBoardView()
+  } else if (view === "calendar") {
+    viewSubtitle.textContent = "Monthly calendar"
+    renderCalendar()
+  } else if (view === "upcoming") {
+    viewSubtitle.textContent = "Tasks due in next 7 days"
+    renderUpcoming()
+  } else {
+    viewSubtitle.textContent = ""
+  }
 
   console.log("[v0] View changed to:", view)
 }
@@ -236,98 +273,121 @@ function renderView(view) {
 // ============================================
 
 function renderTaskList() {
-  // Filter tasks based on current filter
-  let filteredTasks = tasks
-  if (currentFilter !== "all") {
-    filteredTasks = tasks.filter((t) => t.tag === currentFilter)
-  }
-
-  // Sort by due date
-  filteredTasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+  const filtered = getFilteredTasks()
+  filtered.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
 
   taskList.innerHTML = ""
 
-  // Show empty message if no tasks
-  if (filteredTasks.length === 0) {
-    taskList.innerHTML = '<li class="empty-message">No tasks yet. Add one to get started!</li>'
+  if (filtered.length === 0) {
+    taskList.innerHTML = '<li class="empty-message">No tasks found. Add one to get started!</li>'
     return
   }
 
-  // Create task elements
-  filteredTasks.forEach((task) => {
+  filtered.forEach((task) => {
     const li = document.createElement("li")
-    li.className = `task-item ${task.color}`
-    if (task.completed) li.style.opacity = "0.6"
+    li.className = `task-item ${task.completed ? "completed" : ""}`
 
     const daysUntil = getDaysUntil(task.dueDate)
-    const dateClass = daysUntil <= 0 ? "overdue" : daysUntil <= 1 ? "soon" : ""
+    const isOverdue = daysUntil < 0 && !task.completed
 
     li.innerHTML = `
-      <div class="task-header">
-        <input type="checkbox" ${task.completed ? "checked" : ""} 
-               onchange="toggleTask(${task.id})" style="width: 20px; height: 20px;">
-        <span class="task-title" style="text-decoration: ${task.completed ? "line-through" : "none"};">
-          ${task.title}
-        </span>
-      </div>
-      <div class="task-meta">
-        <span class="task-tag ${task.tag}">${task.tag}</span>
-        <span class="task-date">📅 ${formatDate(task.dueDate)} <span class="${dateClass}">${daysUntil <= 0 ? "⚠️ Overdue" : daysUntil <= 1 ? "⏰ Soon" : ""}</span></span>
+      <input type="checkbox" class="task-checkbox" ${task.completed ? "checked" : ""} 
+             onchange="toggleTask(${task.id})">
+      <div class="task-content">
+        <div class="task-header">
+          <span class="task-title">${escapeHtml(task.title)}</span>
+        </div>
+        <div class="task-meta">
+          <span class="task-tag ${task.tag}">${task.tag}</span>
+          <span class="priority-badge ${task.priority}">${task.priority}</span>
+          <span class="status-badge ${task.status}">${formatStatus(task.status)}</span>
+          <span class="task-date">📅 ${formatDate(task.dueDate)} ${isOverdue ? "⚠️ Overdue" : ""}</span>
+        </div>
       </div>
       <div class="task-actions">
-        <button class="task-btn toggle-btn expanded" onclick="toggleSubtaskView(${task.id})">Subtasks</button>
-        <button class="task-btn edit-btn" onclick="addSubtask(${task.id})">+ Sub</button>
-        <button class="task-btn delete-btn" onclick="deleteTask(${task.id})">Delete</button>
+        <button class="task-btn edit-btn" onclick="openTaskModal(${task.id})" title="Edit">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="task-btn delete-btn" onclick="deleteTask(${task.id})" title="Delete">
+          <i class="fas fa-trash"></i>
+        </button>
       </div>
-      ${
-        task.subtasks.length > 0
-          ? `
-        <div class="subtasks" id="subtasks-${task.id}">
-          ${task.subtasks
-            .map(
-              (st) => `
-            <div class="subtask-item ${st.completed ? "completed" : ""}">
-              <input type="checkbox" ${st.completed ? "checked" : ""} 
-                     onchange="toggleSubtask(${task.id}, ${st.id})">
-              <span class="subtask-text">${st.title}</span>
-              <button class="subtask-delete" onclick="deleteSubtask(${task.id}, ${st.id})">✕</button>
-            </div>
-          `,
-            )
-            .join("")}
-        </div>
-      `
-          : ""
-      }
     `
 
     taskList.appendChild(li)
   })
-
-  console.log("[v0] Task list rendered")
 }
 
-// Helper: Toggle subtask visibility
-function toggleSubtaskView(taskId) {
-  const subtaskDiv = document.getElementById(`subtasks-${taskId}`)
-  if (subtaskDiv) {
-    subtaskDiv.style.display = subtaskDiv.style.display === "none" ? "block" : "none"
+// ============================================
+// DATABASE VIEW
+// ============================================
+
+function renderDatabaseView() {
+  const filtered = getFilteredTasks()
+  filtered.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+
+  const tbody = document.getElementById("taskTableBody")
+  tbody.innerHTML = ""
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty-message">No tasks found.</td></tr>'
+    return
   }
+
+  filtered.forEach((task) => {
+    const tr = document.createElement("tr")
+    const daysUntil = getDaysUntil(task.dueDate)
+    const isOverdue = daysUntil < 0 && !task.completed
+
+    tr.innerHTML = `
+      <td>
+        <input type="checkbox" ${task.completed ? "checked" : ""} 
+               onchange="toggleTask(${task.id})">
+        <span>${escapeHtml(task.title)}</span>
+      </td>
+      <td><span class="status-badge ${task.status}">${formatStatus(task.status)}</span></td>
+      <td><span class="priority-badge ${task.priority}">${task.priority}</span></td>
+      <td><span class="task-tag ${task.tag}">${task.tag}</span></td>
+      <td>${formatDate(task.dueDate)} ${isOverdue ? "⚠️" : ""}</td>
+      <td>
+        <button class="task-btn edit-btn" onclick="openTaskModal(${task.id})">Edit</button>
+        <button class="task-btn delete-btn" onclick="deleteTask(${task.id})">Delete</button>
+      </td>
+    `
+    tbody.appendChild(tr)
+  })
 }
 
-// Helper: Format date
-function formatDate(dateStr) {
-  const date = new Date(dateStr + "T00:00:00")
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-}
+// ============================================
+// BOARD/KANBAN VIEW
+// ============================================
 
-// Helper: Get days until date
-function getDaysUntil(dateStr) {
-  const date = new Date(dateStr + "T00:00:00")
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const diff = Math.ceil((date - today) / (1000 * 60 * 60 * 24))
-  return diff
+function renderBoardView() {
+  const filtered = getFilteredTasks()
+  const statuses = ["todo", "in-progress", "done"]
+
+  statuses.forEach((status) => {
+    const container = document.getElementById(`kanban-${status}`)
+    container.innerHTML = ""
+
+    const statusTasks = filtered.filter((t) => t.status === status)
+    statusTasks.forEach((task) => {
+      const card = document.createElement("div")
+      card.className = "kanban-card"
+      card.innerHTML = `
+        <div class="kanban-card-title">${escapeHtml(task.title)}</div>
+        <div class="kanban-card-meta">
+          <span class="task-tag ${task.tag}">${task.tag}</span>
+          <span class="priority-badge ${task.priority}">${task.priority}</span>
+        </div>
+        <div style="margin-top: 10px; display: flex; gap: 6px;">
+          <button class="task-btn edit-btn" onclick="openTaskModal(${task.id})" style="flex: 1; font-size: 11px;">Edit</button>
+          <button class="task-btn delete-btn" onclick="deleteTask(${task.id})" style="flex: 1; font-size: 11px;">Delete</button>
+        </div>
+      `
+      container.appendChild(card)
+    })
+  })
 }
 
 // ============================================
@@ -338,33 +398,30 @@ function renderCalendar() {
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
 
-  // Update header
   document.getElementById("monthYear").textContent = currentDate.toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
   })
 
-  // Create calendar grid
   const calendar = document.getElementById("calendar")
   calendar.innerHTML = ""
 
-  // Add day headers
+  // Day headers
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
   dayNames.forEach((day) => {
-    const dayHeader = document.createElement("div")
-    dayHeader.style.fontWeight = "bold"
-    dayHeader.style.textAlign = "center"
-    dayHeader.style.padding = "8px"
-    dayHeader.textContent = day
-    calendar.appendChild(dayHeader)
+    const header = document.createElement("div")
+    header.style.fontWeight = "bold"
+    header.style.textAlign = "center"
+    header.style.padding = "8px"
+    header.textContent = day
+    calendar.appendChild(header)
   })
 
-  // Get first day of month and number of days
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   const daysInPrevMonth = new Date(year, month, 0).getDate()
 
-  // Add previous month's days
+  // Previous month
   for (let i = firstDay - 1; i >= 0; i--) {
     const day = document.createElement("div")
     day.className = "calendar-day other-month"
@@ -372,7 +429,7 @@ function renderCalendar() {
     calendar.appendChild(day)
   }
 
-  // Add current month's days
+  // Current month
   for (let i = 1; i <= daysInMonth; i++) {
     const day = document.createElement("div")
     day.className = "calendar-day"
@@ -385,13 +442,11 @@ function renderCalendar() {
     }
 
     day.textContent = i
-    day.onclick = () => renderCalendarTasks(dateStr)
-
     calendar.appendChild(day)
   }
 
-  // Add next month's days
-  const totalCells = calendar.children.length - 7 // Subtract day headers
+  // Next month
+  const totalCells = calendar.children.length - 7
   const remainingCells = 42 - totalCells
   for (let i = 1; i <= remainingCells; i++) {
     const day = document.createElement("div")
@@ -399,73 +454,6 @@ function renderCalendar() {
     day.textContent = i
     calendar.appendChild(day)
   }
-
-  console.log("[v0] Calendar rendered")
-}
-
-// Render tasks for selected calendar date
-function renderCalendarTasks(dateStr) {
-  const dateTasks = tasks.filter((t) => t.dueDate === dateStr)
-  const tasksList = document.getElementById("calendarTasksList")
-
-  tasksList.innerHTML = `<h3>Tasks for ${formatDate(dateStr)}</h3>`
-
-  if (dateTasks.length === 0) {
-    tasksList.innerHTML += '<p class="empty-message">No tasks for this date</p>'
-    return
-  }
-
-  const ul = document.createElement("ul")
-  ul.className = "task-list"
-  dateTasks.forEach((task) => {
-    const li = document.createElement("li")
-    li.className = `task-item ${task.color}`
-    li.innerHTML = `
-      <div class="task-header">
-        <span class="task-title">${task.title}</span>
-      </div>
-      <div class="task-actions">
-        <button class="task-btn delete-btn" onclick="deleteTask(${task.id})">Delete</button>
-      </div>
-    `
-    ul.appendChild(li)
-  })
-  tasksList.appendChild(ul)
-}
-
-// ============================================
-// STICKY WALL VIEW
-// ============================================
-
-function renderStickyWall() {
-  const stickyWall = document.getElementById("stickyWall")
-  stickyWall.innerHTML = ""
-
-  if (tasks.length === 0) {
-    stickyWall.innerHTML = '<div class="empty-message">No tasks. Add one to display on sticky wall!</div>'
-    return
-  }
-
-  tasks.forEach((task) => {
-    const sticky = document.createElement("div")
-    sticky.className = `sticky-note ${task.color}`
-
-    sticky.innerHTML = `
-      <div class="sticky-title">${task.title}</div>
-      <div class="sticky-meta">
-        <strong>${task.tag}</strong><br>
-        📅 ${formatDate(task.dueDate)}
-      </div>
-      <div class="sticky-actions">
-        <button class="task-btn edit-btn" onclick="toggleTask(${task.id})">✓ Done</button>
-        <button class="task-btn delete-btn" onclick="deleteTask(${task.id})">✕ Delete</button>
-      </div>
-    `
-
-    stickyWall.appendChild(sticky)
-  })
-
-  console.log("[v0] Sticky wall rendered")
 }
 
 // ============================================
@@ -476,66 +464,97 @@ function renderUpcoming() {
   const upcomingList = document.getElementById("upcomingTasksList")
   upcomingList.innerHTML = ""
 
-  // Get tasks for next 7 days
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   const nextWeek = new Date(today)
   nextWeek.setDate(nextWeek.getDate() + 7)
 
-  const upcomingTasks = tasks.filter((t) => {
+  const upcoming = tasks.filter((t) => {
     const taskDate = new Date(t.dueDate + "T00:00:00")
     return taskDate >= today && taskDate <= nextWeek && !t.completed
   })
 
-  upcomingTasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+  upcoming.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
 
-  if (upcomingTasks.length === 0) {
+  if (upcoming.length === 0) {
     upcomingList.innerHTML = '<li class="empty-message">No upcoming tasks!</li>'
     return
   }
 
-  upcomingTasks.forEach((task) => {
+  upcoming.forEach((task) => {
     const li = document.createElement("li")
     li.className = "upcoming-item"
+    const daysUntil = getDaysUntil(task.dueDate)
+
     li.innerHTML = `
       <div class="upcoming-info">
-        <div class="upcoming-title">${task.title}</div>
+        <div class="upcoming-title">${escapeHtml(task.title)}</div>
         <div class="upcoming-date">
-          📅 ${formatDate(task.dueDate)} • ${task.tag}
+          📅 ${formatDate(task.dueDate)} (${daysUntil} days) • ${task.tag}
         </div>
       </div>
       <button class="task-btn delete-btn" onclick="deleteTask(${task.id})">Delete</button>
     `
     upcomingList.appendChild(li)
   })
-
-  console.log("[v0] Upcoming view rendered")
 }
 
 // ============================================
 // SETTINGS
 // ============================================
 
-// Toggle dark mode
 function toggleDarkMode(e) {
   document.body.classList.toggle("dark-mode", e.target.checked)
   localStorage.setItem("darkMode", e.target.checked)
 }
 
-// Clear all tasks
 function clearAllTasks() {
-  if (confirm("Are you sure? This will delete all tasks!")) {
+  if (confirm("Delete ALL tasks? This cannot be undone!")) {
     tasks = []
     saveTasks()
-    renderTaskList()
+    renderView(currentView)
     console.log("[v0] All tasks cleared")
   }
 }
 
-// Load dark mode preference
+// Load dark mode
 if (localStorage.getItem("darkMode") === "true") {
   document.body.classList.add("dark-mode")
   document.getElementById("darkModeToggle").checked = true
 }
 
-console.log("[v0] Script fully loaded")
+// ============================================
+// UTILITIES
+// ============================================
+
+function formatStatus(status) {
+  const map = { todo: "To Do", "in-progress": "In Progress", done: "Done" }
+  return map[status] || status
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return "No date"
+  const date = new Date(dateStr + "T00:00:00")
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+}
+
+function getDaysUntil(dateStr) {
+  if (!dateStr) return Number.POSITIVE_INFINITY
+  const date = new Date(dateStr + "T00:00:00")
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return Math.ceil((date - today) / (1000 * 60 * 60 * 24))
+}
+
+function escapeHtml(text) {
+  const map = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
+  }
+  return text.replace(/[&<>"']/g, (m) => map[m])
+}
+
+console.log("[v0] Script loaded - Notion-style task manager ready!")

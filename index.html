@@ -3,91 +3,173 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Task Manager</title>
+    <title>Task Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="app-wrapper">
-        <!-- SIDEBAR MENU -->
+        <!-- SIDEBAR -->
         <nav class="sidebar">
             <div class="sidebar-header">
-                <h2>Task Manager</h2>
-                <button class="menu-toggle" id="menuToggle">☰</button>
+                <div class="logo">
+                    <i class="fas fa-check-circle"></i>
+                    <span>TaskFlow</span>
+                </div>
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
+
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="globalSearch" placeholder="Search tasks...">
+            </div>
+
             <ul class="nav-menu">
-                <li><a href="#" data-view="list" class="nav-link active">📋 List View</a></li>
-                <li><a href="#" data-view="calendar" class="nav-link">📅 Calendar</a></li>
-                <li><a href="#" data-view="sticky" class="nav-link">📌 Sticky Wall</a></li>
-                <li><a href="#" data-view="upcoming" class="nav-link">⏰ Upcoming</a></li>
+                <li class="nav-section-title">VIEWS</li>
+                <li><a href="#" data-view="list" class="nav-link active">
+                    <i class="fas fa-list"></i> <span>All Tasks</span>
+                </a></li>
+                <li><a href="#" data-view="database" class="nav-link">
+                    <i class="fas fa-table"></i> <span>Database</span>
+                </a></li>
+                <li><a href="#" data-view="board" class="nav-link">
+                    <i class="fas fa-kanban"></i> <span>Board</span>
+                </a></li>
+                <li><a href="#" data-view="calendar" class="nav-link">
+                    <i class="fas fa-calendar"></i> <span>Calendar</span>
+                </a></li>
+                <li><a href="#" data-view="upcoming" class="nav-link">
+                    <i class="fas fa-clock"></i> <span>Upcoming</span>
+                </a></li>
+
                 <li class="sidebar-divider"></li>
-                <li><a href="#" data-view="settings" class="nav-link">⚙️ Settings</a></li>
+                <li class="nav-section-title">TAGS</li>
+                <li><a href="#" data-filter="work" class="nav-link filter-link">
+                    <i class="fas fa-briefcase"></i> <span>Work</span>
+                </a></li>
+                <li><a href="#" data-filter="personal" class="nav-link filter-link">
+                    <i class="fas fa-user"></i> <span>Personal</span>
+                </a></li>
+                <li><a href="#" data-filter="shopping" class="nav-link filter-link">
+                    <i class="fas fa-shopping-bag"></i> <span>Shopping</span>
+                </a></li>
+                <li><a href="#" data-filter="health" class="nav-link filter-link">
+                    <i class="fas fa-heart"></i> <span>Health</span>
+                </a></li>
+
+                <li class="sidebar-divider"></li>
+                <li><a href="#" data-view="settings" class="nav-link">
+                    <i class="fas fa-cog"></i> <span>Settings</span>
+                </a></li>
             </ul>
         </nav>
 
-        <!-- MAIN CONTENT AREA -->
+        <!-- MAIN CONTENT -->
         <main class="main-content">
             <!-- HEADER -->
             <header class="app-header">
-                <h1 id="viewTitle">My Tasks</h1>
+                <div class="header-left">
+                    <h1 id="viewTitle">All Tasks</h1>
+                    <p id="viewSubtitle" class="view-subtitle"></p>
+                </div>
                 <div class="header-actions">
-                    <button id="settingsBtn" class="icon-btn" title="Settings">⚙️</button>
+                    <button id="sortBtn" class="icon-btn" title="Sort">
+                        <i class="fas fa-arrow-down-a-z"></i>
+                    </button>
+                    <button id="filterMenuBtn" class="icon-btn" title="Filter">
+                        <i class="fas fa-filter"></i>
+                    </button>
                 </div>
             </header>
 
-            <!-- INPUT SECTION -->
-            <div class="input-section">
-                <input 
-                    type="text" 
-                    id="taskInput" 
-                    placeholder="Add a new task..."
-                    class="task-input"
-                >
-                <select id="tagSelect" class="tag-select">
-                    <option value="">Select Tag</option>
-                    <option value="work">Work</option>
-                    <option value="personal">Personal</option>
-                    <option value="shopping">Shopping</option>
-                    <option value="health">Health</option>
-                </select>
-                <select id="colorSelect" class="color-select">
-                    <option value="red">🔴 Red</option>
-                    <option value="blue">🔵 Blue</option>
-                    <option value="green">🟢 Green</option>
-                    <option value="yellow">🟡 Yellow</option>
-                    <option value="purple">🟣 Purple</option>
-                </select>
-                <input type="date" id="dateInput" class="date-input">
-                <button id="addBtn" class="add-btn">+ Add Task</button>
+            <!-- QUICK ADD SECTION -->
+            <div class="quick-add-section">
+                <div class="quick-add-form">
+                    <input 
+                        type="text" 
+                        id="taskInput" 
+                        placeholder="Add a new task..."
+                        class="quick-add-input"
+                    >
+                    <div class="quick-add-options">
+                        <select id="tagSelect" class="input-select">
+                            <option value="personal">Personal</option>
+                            <option value="work">Work</option>
+                            <option value="shopping">Shopping</option>
+                            <option value="health">Health</option>
+                        </select>
+                        <select id="prioritySelect" class="input-select">
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                        <input type="date" id="dateInput" class="input-select">
+                        <button id="addBtn" class="add-btn">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- VIEWS CONTAINER -->
             <div class="views-container">
                 <!-- LIST VIEW -->
                 <div id="listView" class="view active">
-                    <div class="task-filters">
-                        <button class="filter-btn active" data-filter="all">All</button>
-                        <button class="filter-btn" data-filter="work">Work</button>
-                        <button class="filter-btn" data-filter="personal">Personal</button>
-                        <button class="filter-btn" data-filter="shopping">Shopping</button>
-                        <button class="filter-btn" data-filter="health">Health</button>
+                    <div class="list-wrapper">
+                        <ul id="taskList" class="task-list"></ul>
                     </div>
-                    <ul id="taskList" class="task-list"></ul>
+                </div>
+
+                <!-- DATABASE/TABLE VIEW -->
+                <div id="databaseView" class="view">
+                    <div class="table-wrapper">
+                        <table id="taskTable" class="task-table">
+                            <thead>
+                                <tr>
+                                    <th>Task</th>
+                                    <th>Status</th>
+                                    <th>Priority</th>
+                                    <th>Tag</th>
+                                    <th>Due Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="taskTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- BOARD/KANBAN VIEW -->
+                <div id="boardView" class="view">
+                    <div class="kanban-board">
+                        <div class="kanban-column" data-status="todo">
+                            <div class="kanban-header">To Do</div>
+                            <div class="kanban-tasks" id="kanban-todo"></div>
+                        </div>
+                        <div class="kanban-column" data-status="in-progress">
+                            <div class="kanban-header">In Progress</div>
+                            <div class="kanban-tasks" id="kanban-in-progress"></div>
+                        </div>
+                        <div class="kanban-column" data-status="done">
+                            <div class="kanban-header">Done</div>
+                            <div class="kanban-tasks" id="kanban-done"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- CALENDAR VIEW -->
                 <div id="calendarView" class="view">
-                    <div class="calendar-header">
-                        <button id="prevMonth">&lt;</button>
-                        <h2 id="monthYear"></h2>
-                        <button id="nextMonth">&gt;</button>
+                    <div class="calendar-container">
+                        <div class="calendar-header">
+                            <button id="prevMonth"><i class="fas fa-chevron-left"></i></button>
+                            <h2 id="monthYear"></h2>
+                            <button id="nextMonth"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div id="calendar" class="calendar-grid"></div>
                     </div>
-                    <div id="calendar" class="calendar-grid"></div>
-                    <div id="calendarTasksList" class="calendar-tasks-list"></div>
-                </div>
-
-                <!-- STICKY WALL VIEW -->
-                <div id="stickyView" class="view">
-                    <div id="stickyWall" class="sticky-wall"></div>
                 </div>
 
                 <!-- UPCOMING VIEW -->
@@ -102,20 +184,77 @@
                         <div class="setting-group">
                             <label>
                                 <input type="checkbox" id="darkModeToggle">
-                                Dark Mode
+                                <span>Dark Mode</span>
                             </label>
                         </div>
                         <div class="setting-group">
-                            <label>
-                                <input type="checkbox" id="notificationsToggle" checked>
-                                Enable Notifications
-                            </label>
+                            <button id="clearAllBtn" class="danger-btn">
+                                <i class="fas fa-trash"></i> Clear All Tasks
+                            </button>
                         </div>
-                        <button id="clearAllBtn" class="danger-btn">Clear All Tasks</button>
                     </div>
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- TASK EDITOR MODAL -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Task</h2>
+                <button class="modal-close" id="modalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Task Title</label>
+                    <input type="text" id="modalTitle" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="modalDescription" class="form-input" rows="3"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="modalStatus" class="form-input">
+                            <option value="todo">To Do</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="done">Done</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Priority</label>
+                        <select id="modalPriority" class="form-input">
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tag</label>
+                        <select id="modalTag" class="form-input">
+                            <option value="personal">Personal</option>
+                            <option value="work">Work</option>
+                            <option value="shopping">Shopping</option>
+                            <option value="health">Health</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Due Date</label>
+                        <input type="date" id="modalDate" class="form-input">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modalSave" class="btn btn-primary">Save</button>
+                <button id="modalCancel" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
     </div>
 
     <script src="script.js"></script>
