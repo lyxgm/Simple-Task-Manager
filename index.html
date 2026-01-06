@@ -3,35 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Task Manager</title>
+    <title>Advanced Task Manager</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Main container for the app -->
-    <div class="container">
-        <!-- Title of the app -->
-        <h1>My Task Manager</h1>
-        
-        <!-- Input area for adding new tasks -->
-        <div class="input-section">
-            <!-- Text input field where user types the task -->
-            <input 
-                type="text" 
-                id="taskInput" 
-                placeholder="Enter a new task..."
-                class="task-input"
-            >
-            <!-- Button to add the task -->
-            <button id="addBtn" class="add-btn">Add Task</button>
-        </div>
-        
-        <!-- List where all tasks will appear -->
-        <ul id="taskList" class="task-list">
-            <!-- Tasks will be added here by JavaScript -->
-        </ul>
+    <div class="app-wrapper">
+        <!-- SIDEBAR MENU -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Task Manager</h2>
+                <button class="menu-toggle" id="menuToggle">☰</button>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#" data-view="list" class="nav-link active">📋 List View</a></li>
+                <li><a href="#" data-view="calendar" class="nav-link">📅 Calendar</a></li>
+                <li><a href="#" data-view="sticky" class="nav-link">📌 Sticky Wall</a></li>
+                <li><a href="#" data-view="upcoming" class="nav-link">⏰ Upcoming</a></li>
+                <li class="sidebar-divider"></li>
+                <li><a href="#" data-view="settings" class="nav-link">⚙️ Settings</a></li>
+            </ul>
+        </nav>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="main-content">
+            <!-- HEADER -->
+            <header class="app-header">
+                <h1 id="viewTitle">My Tasks</h1>
+                <div class="header-actions">
+                    <button id="settingsBtn" class="icon-btn" title="Settings">⚙️</button>
+                </div>
+            </header>
+
+            <!-- INPUT SECTION -->
+            <div class="input-section">
+                <input 
+                    type="text" 
+                    id="taskInput" 
+                    placeholder="Add a new task..."
+                    class="task-input"
+                >
+                <select id="tagSelect" class="tag-select">
+                    <option value="">Select Tag</option>
+                    <option value="work">Work</option>
+                    <option value="personal">Personal</option>
+                    <option value="shopping">Shopping</option>
+                    <option value="health">Health</option>
+                </select>
+                <select id="colorSelect" class="color-select">
+                    <option value="red">🔴 Red</option>
+                    <option value="blue">🔵 Blue</option>
+                    <option value="green">🟢 Green</option>
+                    <option value="yellow">🟡 Yellow</option>
+                    <option value="purple">🟣 Purple</option>
+                </select>
+                <input type="date" id="dateInput" class="date-input">
+                <button id="addBtn" class="add-btn">+ Add Task</button>
+            </div>
+
+            <!-- VIEWS CONTAINER -->
+            <div class="views-container">
+                <!-- LIST VIEW -->
+                <div id="listView" class="view active">
+                    <div class="task-filters">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="work">Work</button>
+                        <button class="filter-btn" data-filter="personal">Personal</button>
+                        <button class="filter-btn" data-filter="shopping">Shopping</button>
+                        <button class="filter-btn" data-filter="health">Health</button>
+                    </div>
+                    <ul id="taskList" class="task-list"></ul>
+                </div>
+
+                <!-- CALENDAR VIEW -->
+                <div id="calendarView" class="view">
+                    <div class="calendar-header">
+                        <button id="prevMonth">&lt;</button>
+                        <h2 id="monthYear"></h2>
+                        <button id="nextMonth">&gt;</button>
+                    </div>
+                    <div id="calendar" class="calendar-grid"></div>
+                    <div id="calendarTasksList" class="calendar-tasks-list"></div>
+                </div>
+
+                <!-- STICKY WALL VIEW -->
+                <div id="stickyView" class="view">
+                    <div id="stickyWall" class="sticky-wall"></div>
+                </div>
+
+                <!-- UPCOMING VIEW -->
+                <div id="upcomingView" class="view">
+                    <ul id="upcomingTasksList" class="upcoming-list"></ul>
+                </div>
+
+                <!-- SETTINGS VIEW -->
+                <div id="settingsView" class="view">
+                    <div class="settings-container">
+                        <h2>Settings</h2>
+                        <div class="setting-group">
+                            <label>
+                                <input type="checkbox" id="darkModeToggle">
+                                Dark Mode
+                            </label>
+                        </div>
+                        <div class="setting-group">
+                            <label>
+                                <input type="checkbox" id="notificationsToggle" checked>
+                                Enable Notifications
+                            </label>
+                        </div>
+                        <button id="clearAllBtn" class="danger-btn">Clear All Tasks</button>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
-    <!-- Link to our JavaScript file -->
     <script src="script.js"></script>
 </body>
 </html>
